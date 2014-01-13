@@ -9,21 +9,13 @@ module FakeSQS
       @options = options
     end
 
-    def host
-      option :sqs_endpoint
-    end
-
-    def port
-      option :sqs_port
-    end
-
     def start
       start! unless up?
       reset
     end
 
     def start!
-      args = [ binfile, "-p", port.to_s, verbose, logging, "--database", database, { :out => out, :err => out } ].flatten.compact
+      args = [ binfile, "-p", host.port.to_s, verbose, logging, "--database", database, { :out => out, :err => out } ].flatten.compact
       @pid = Process.spawn(*args)
       wait_until_up
     end
@@ -47,7 +39,7 @@ module FakeSQS
     end
 
     def url
-      "http://#{host}:#{port}"
+      host.to_s
     end
 
     def up?
@@ -58,8 +50,12 @@ module FakeSQS
 
     private
 
+    def host
+      @host ||= ::URI.parse(option :endpoint)
+    end
+
     def option(key)
-      options.fetch(key) { AWS.config.public_send(key) }
+      options.fetch(key) { Aws.config[key] }
     end
 
     def database
@@ -103,7 +99,7 @@ module FakeSQS
     end
 
     def connection
-      @connection ||= Net::HTTP.new(host, port)
+      @connection ||= Net::HTTP.new(host.hostname, host.port)
     end
 
     def debug?

@@ -1,3 +1,4 @@
+require "aws-sdk-core"
 require "aws-sdk"
 require "fake_sqs/test_integration"
 
@@ -8,6 +9,13 @@ AWS.config(
   :access_key_id     => "fake access key",
   :secret_access_key => "fake secret key",
 )
+
+Aws.config = {
+  :endpoint          => "http://localhost:4568",
+  :access_key_id     => "fake access key",
+  :secret_access_key => "fake secret key",
+  :region            => "us-east-1"
+}
 
 db = ENV["SQS_DATABASE"] || ":memory:"
 puts "\n\e[34mRunning specs with database \e[33m#{db}\e[0m"
